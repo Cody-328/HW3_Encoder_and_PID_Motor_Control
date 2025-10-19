@@ -25,8 +25,8 @@ unsigned long lastTime = 0;
 #define MIN_OUTPUT 20       // Minimum PWM to keep motor spinning
 
 // ----------------- Hysteresis thresholds -----------------
-#define HIGH_THRESHOLD 550   // Above this = light mark
-#define LOW_THRESHOLD 500    // Below this = dark background
+#define HIGH_THRESHOLD 280   // Above this = light mark
+#define LOW_THRESHOLD 230    // Below this = dark background
 bool sensorHigh = false;
 
 // ----------------- Setup -----------------
@@ -99,8 +99,24 @@ void loop() {
     Serial.print(" | Sensor Value: ");
     Serial.println(LightValue);
   }
-}
+  // --- Check for Serial input to change setpoint ---
+  if (Serial.available() > 0) {
+    String inputString = Serial.readStringUntil('\n');
+    inputString.trim();
 
+    // Expect input like: S50  (meaning setpoint = 50)
+    if (inputString.startsWith("S")) {
+      double newSetpoint = inputString.substring(1).toDouble();
+      if (newSetpoint >= 0 && newSetpoint <= 200) { // adjust range as needed
+        Setpoint = newSetpoint;
+        Serial.print("✅ New setpoint: ");
+        Serial.println(Setpoint);
+      } else {
+        Serial.println("⚠️ Invalid setpoint range (0-200).");
+      }
+    }
+  }
+}
 
 
 
